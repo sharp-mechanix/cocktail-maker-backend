@@ -6,12 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Math\" />
     <None Remove="Enums\" />
     <None Remove="Settings\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Math\" />
     <Folder Include="Enums\" />
     <Folder Include="Settings\" />
   </ItemGroup>

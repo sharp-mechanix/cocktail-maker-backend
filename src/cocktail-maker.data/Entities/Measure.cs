@@ -31,14 +31,9 @@
 		public int IngredientId { get; set; }
 
 		/// <summary>
-		///		Measure unit
-		/// </summary>
-		public string Unit { get; set; }
-
-		/// <summary>
         ///		Measure value
         /// </summary>
-		public double Value { get; set; }
+		public string Value { get; set; }
 	}
 }
 

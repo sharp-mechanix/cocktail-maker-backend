@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CocktailDbAPI;
 using CocktailDbAPI.Models.Drink;
-using CocktailMaker.Common.Math;
 using CocktailMaker.Data;
 using CocktailMaker.Grabber.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -35,8 +34,12 @@ namespace CocktailMaker.Grabber.Modules
 		/// <inheritdoc />
         public async Task GetCocktailDataAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Starting cocktail grabbing");
+
 			await GetIngredientsAsync(cancellationToken);
-			await GetCocktailsAsync(cancellationToken);			
+			await GetCocktailsAsync(cancellationToken);
+
+            _logger.LogInformation("Grabbing completed successfully");
         }
 
         /// <summary>
@@ -44,15 +47,21 @@ namespace CocktailMaker.Grabber.Modules
         /// </summary>
         private async Task GetIngredientsAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Getting ingredients");
+
+            _logger.LogTrace("Getting ingredient names");
             var ingredientNames = await _apiClient.GetIngredientsFiltersAsync();
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             foreach (var name in ingredientNames)
             {
+                _logger.LogTrace("Getting detailed information on ingredient '{name.Ingredient}'", name.Ingredient);
+
                 var ingredient = (await _apiClient.GetIngredientsByNameAsync(name.Ingredient)).FirstOrDefault();
                 if (ingredient is not null && !await IsIngredientExistsInDb(ingredient.IngredientId, dbContext))
                 {
+                    _logger.LogTrace("Ingredient '{name.Ingredient}' does not exist in database. Adding it", name.Ingredient);
                     var newIngredient = new App.Ingredient
                     {
                         Name = ingredient.IngredientName,
@@ -71,6 +80,8 @@ namespace CocktailMaker.Grabber.Modules
                     await t.CommitAsync(cancellationToken);
                 }
             }
+
+            _logger.LogInformation("Finished getting ingredients");
         }
 
         /// <summary>
@@ -84,12 +95,17 @@ namespace CocktailMaker.Grabber.Modules
         /// </summary>
         private async Task GetCocktailsAsync(CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Getting cocktails");
+
+            _logger.LogTrace("Getting cocktail categories");
             var categories = await _apiClient.GetCategoryFiltersAsync();
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             foreach (var category in categories)
             {
+                _logger.LogTrace("Getting cocktails in category '{category.Category}'", category.Category);
+
                 var drinks = await _apiClient.GetDrinkSummariesByCategoryAsync(category.Category);
                 foreach (var drink in drinks)
                 {
@@ -98,6 +114,7 @@ namespace CocktailMaker.Grabber.Modules
                         continue;
                     }
 
+                    _logger.LogTrace("Cocktail '{drink.DrinkName}' does not exist in database. Getting detailed information", drink.DrinkName);
                     var drinkDetails = await _apiClient.GetDrinkByIdAsync(drink.DrinkId);
 
                     var cocktail = new App.Cocktail
@@ -122,18 +139,24 @@ namespace CocktailMaker.Grabber.Modules
 
                 }
             }
+
+            _logger.LogDebug("Finished getting cocktails");
         }
 
         /// <summary>
         ///     Parses measure from cocktail
         /// </summary>
-        private static async Task GetMeasures(AppDbContext dbContext, App.Cocktail cocktail, Drink drink, CancellationToken cancellationToken)
+        private async Task GetMeasures(AppDbContext dbContext, App.Cocktail cocktail, Drink drink, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Getting measures info for cocktail '{drink.DrinkName}'", drink.DrinkName);
+
             var ingredients = await ConvertIngredientsToArrayAsync(dbContext, drink, cancellationToken);
             var measures = ConvertMeasuresToArray(drink);
 
             if (ingredients.Length < measures.Length)
             {
+                _logger.LogError("Cannot have more measures than ingredients");
+
                 throw new Exception("Something went wrong while parsing measures");
             }
 
@@ -144,9 +167,9 @@ namespace CocktailMaker.Grabber.Modules
                 {
                     CocktailId = cocktail.Id,
                     IngredientId = ingredients[i].Id,
-                    Unit = measures[i].Unit,
-                    Value = measures[i].Value
                 };
+
+                measure.Value = i < measures.Length ? measures[i] : "nothing";
 
                 dbMeasures.Add(measure);
             }
@@ -157,6 +180,8 @@ namespace CocktailMaker.Grabber.Modules
             await dbContext.SaveChangesAsync(cancellationToken);
 
             await t.CommitAsync(cancellationToken);
+
+            _logger.LogDebug("Finished getting measures for '{drink.DrinkName}'", drink.DrinkName);
         }
 
         /// <summary>
@@ -188,7 +213,7 @@ namespace CocktailMaker.Grabber.Modules
 
         private static async Task<App.Ingredient> GetOrCreateIngredientAsync(AppDbContext dbContext, string ingredientName, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(ingredientName))
+            if (string.IsNullOrWhiteSpace(ingredientName))
             {
                 return null;
             }
@@ -220,25 +245,25 @@ namespace CocktailMaker.Grabber.Modules
         /// <summary>
         ///     Converts measure fields to list
         /// </summary>
-        private static UnitValuePair[] ConvertMeasuresToArray(Drink drink)
+        private static string[] ConvertMeasuresToArray(Drink drink)
         {
-            var result = new UnitValuePair[]
+            var result = new string[]
             {
-                drink.Measure1 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure1) : null,
-                drink.Measure2 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure2) : null,
-                drink.Measure3 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure3) : null,
-                drink.Measure4 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure4) : null,
-                drink.Measure5 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure5) : null,
-                drink.Measure6 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure6) : null,
-                drink.Measure7 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure7) : null,
-                drink.Measure8 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure8) : null,
-                drink.Measure9 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure9) : null,
-                drink.Measure10 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure10) : null,
-                drink.Measure11 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure11) : null,
-                drink.Measure12 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure12) : null,
-                drink.Measure13 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure13) : null,
-                drink.Measure14 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure14) : null,
-                drink.Measure15 is not null ? Fraction.ConvertFractionToUnitValuePair(drink.Measure15) : null
+                string.IsNullOrWhiteSpace(drink.Measure1) ? null : drink.Measure1.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure2) ? null : drink.Measure2.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure3) ? null : drink.Measure3.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure4) ? null : drink.Measure4.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure5) ? null : drink.Measure5.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure6) ? null : drink.Measure6.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure7) ? null : drink.Measure7.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure8) ? null : drink.Measure8.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure9) ? null : drink.Measure9.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure10) ? null : drink.Measure10.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure11) ? null : drink.Measure11.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure12) ? null : drink.Measure12.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure13) ? null : drink.Measure13.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure14) ? null : drink.Measure14.Trim(),
+                string.IsNullOrWhiteSpace(drink.Measure15) ? null : drink.Measure15.Trim()
             };
 
             return result.Where(m => m is not null).ToArray();
