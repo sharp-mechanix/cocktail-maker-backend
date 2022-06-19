@@ -1,6 +1,8 @@
-﻿namespace CocktailMaker.Data.Entities
+﻿using CocktailMaker.Data.Interfaces;
+
+namespace CocktailMaker.Data.Entities
 {
-	public class Ingredient
+	public class Ingredient : IEntity<int>
 	{
 		/// <summary>
         ///		ID

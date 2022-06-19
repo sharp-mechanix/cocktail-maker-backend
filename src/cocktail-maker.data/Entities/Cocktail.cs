@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using CocktailMaker.Data.Interfaces;
 
 namespace CocktailMaker.Data.Entities
 {
 	/// <summary>
     ///		Cocktail entity
     /// </summary>
-	public class Cocktail
+	public class Cocktail : IEntity<int>
 	{
 		/// <summary>
         ///		Cocktail ID

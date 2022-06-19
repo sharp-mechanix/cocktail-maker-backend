@@ -7,17 +7,17 @@ namespace CocktailMaker.Data.Interfaces
     /// <summary>
     ///     Read-only repository
     /// </summary>
-    /// <typeparam name="T">Entity type</typeparam>
-    /// <typeparam name="D">Identifier type</typeparam>
-    public interface IReadRepository<T, D> where T : IEntity<D>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <typeparam name="TId">Identifier type</typeparam>
+    public interface IReadRepository<TEntity, TId> where TEntity : IEntity<TId>
     {
         /// <summary>
         ///     Get one record by identifier
-        Task<T> GetByIdAsync(D id, CancellationToken cancellationToken);
+        Task<TEntity> GetByIdAsync(TId id, CancellationToken cancellationToken);
 
         /// <summary>
         ///     List filtered records
         /// </summary>
-        Task<List<T>> ListAsync(IFilter filter, CancellationToken cancellationToken);
+        Task<List<TEntity>> ListAsync(IFilter? filter, CancellationToken cancellationToken);
     }
 }

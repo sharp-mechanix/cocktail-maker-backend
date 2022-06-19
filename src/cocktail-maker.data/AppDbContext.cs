@@ -8,10 +8,11 @@ namespace CocktailMaker.Data
 	/// <summary>
 	///		Application database context
 	/// </summary>
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 	public class AppDbContext : DbContext
 	{
-		public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-		{
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        {
 		}
 
 		/// <summary>
@@ -38,10 +39,11 @@ namespace CocktailMaker.Data
                 var storeObjectId = StoreObjectIdentifier.Table(entity.GetTableName(), entity.GetSchema());
                 foreach (var property in entity.GetProperties())
                 {
-                    // Проставляем имя поля по умолчанию (snake_case)
+                    // Setting default column names (snake_case)
                     property.SetColumnName(mapper.TranslateMemberName(property.GetColumnName(storeObjectId)));
                 }
             }
         }
     }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 }

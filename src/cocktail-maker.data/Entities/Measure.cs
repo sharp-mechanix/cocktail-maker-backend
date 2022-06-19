@@ -1,9 +1,11 @@
-﻿namespace CocktailMaker.Data.Entities
+﻿using CocktailMaker.Data.Interfaces;
+
+namespace CocktailMaker.Data.Entities
 {
 	/// <summary>
     ///		Ingredient measure (how much do you need of it)
     /// </summary>
-	public class Measure
+	public class Measure : IEntity<int>
 	{
 		/// <summary>
         ///		ID
