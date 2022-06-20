@@ -1,7 +1,7 @@
 ﻿namespace CocktailMaker.Common.Enums
 {
     /// <summary>
-    ///		Drink categories
+    ///     Drink categories
     /// </summary>
     public enum Category
     {

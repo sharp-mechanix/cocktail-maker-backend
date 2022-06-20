@@ -7,7 +7,7 @@ namespace CocktailMaker.Data.Configuration
     /// <summary>
     ///     Configuration for ingredients table
     /// </summary>
-	public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
+    public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
     {
         public void Configure(EntityTypeBuilder<Ingredient> builder)
         {

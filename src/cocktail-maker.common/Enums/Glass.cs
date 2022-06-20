@@ -1,7 +1,7 @@
 ﻿namespace CocktailMaker.Common.Enums
 {
     /// <summary>
-    ///		Glass type for drink
+    ///     Glass type for drink
     /// </summary>
     public enum Glass
     {

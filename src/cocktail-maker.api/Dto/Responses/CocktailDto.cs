@@ -8,32 +8,32 @@ namespace CocktailMaker.Api.Dto.Responses
     public record CocktailDto
     {
         /// <summary>
-        ///		Cocktail ID
+        ///     Cocktail ID
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        ///		Cocktail name
+        ///     Cocktail name
         /// </summary>
         public string Name { get; set; } = "";
 
         /// <summary>
-        ///		Cocktail category
+        ///     Cocktail category
         /// </summary>
         public string Category { get; set; } = "";
 
         /// <summary>
-        ///		IBA category
+        ///     IBA category
         /// </summary>
         public string IbaCategory { get; set; } = "";
 
         /// <summary>
-        ///		Cocktail glass
+        ///     Cocktail glass
         /// </summary>
         public string Glass { get; set; } = "";
 
         /// <summary>
-        ///		Instructions to make cocktail
+        ///     Instructions to make cocktail
         /// </summary>
         public string Instructions { get; set; } = "";
 

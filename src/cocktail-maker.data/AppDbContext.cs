@@ -6,7 +6,7 @@ using Npgsql.NameTranslation;
 namespace CocktailMaker.Data
 {
     /// <summary>
-    ///		Application database context
+    ///     Application database context
     /// </summary>
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public class AppDbContext : DbContext
@@ -16,17 +16,17 @@ namespace CocktailMaker.Data
         }
 
         /// <summary>
-        ///		Cocktails
+        ///     Cocktails
         /// </summary>
         public DbSet<Cocktail> Cocktails { get; set; }
 
         /// <summary>
-        ///		Ingredients
+        ///     Ingredients
         /// </summary>
         public DbSet<Ingredient> Ingredients { get; set; }
 
         /// <summary>
-        ///		Measures
+        ///     Measures
         /// </summary>
         public DbSet<Measure> Measures { get; set; }
 

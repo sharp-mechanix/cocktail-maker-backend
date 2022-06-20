@@ -7,7 +7,7 @@ namespace CocktailMaker.Data.Configuration
     /// <summary>
     ///     Configuration of measures table
     /// </summary>
-	public class MeasureConfiguration : IEntityTypeConfiguration<Measure>
+    public class MeasureConfiguration : IEntityTypeConfiguration<Measure>
     {
         public void Configure(EntityTypeBuilder<Measure> builder)
         {

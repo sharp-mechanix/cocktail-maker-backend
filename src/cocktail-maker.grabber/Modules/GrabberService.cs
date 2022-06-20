@@ -15,7 +15,7 @@ using App = CocktailMaker.Data.Entities;
 namespace CocktailMaker.Grabber.Modules
 {
     /// <summary>
-    ///		Cocktail grabber root service
+    ///     Cocktail grabber root service
     /// </summary>
     public class GrabberService : IGrabberService
     {

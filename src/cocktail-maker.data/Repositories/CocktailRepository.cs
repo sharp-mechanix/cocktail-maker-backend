@@ -13,12 +13,12 @@ namespace CocktailMaker.Data.Repositories
     /// <summary>
     ///     Repository for cocktails
     /// </summary>
-	public class CocktailRepository : IReadRepository<Cocktail, int>
+    public class CocktailRepository : IReadRepository<Cocktail, int>
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         /// <see cref="CocktailRepository" />
-		public CocktailRepository(IServiceScopeFactory serviceScopeFactory)
+        public CocktailRepository(IServiceScopeFactory serviceScopeFactory)
         {
             _serviceScopeFactory = serviceScopeFactory;
         }
