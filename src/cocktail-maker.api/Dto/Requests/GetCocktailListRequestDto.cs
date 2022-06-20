@@ -1,12 +1,9 @@
-using CocktailMaker.Api.Dto.Responses;
-using CocktailMaker.Api.Handlers.Queries.Primitives;
-
-namespace CocktailMaker.Api.Handlers.Queries
+namespace CocktailMaker.Api.Dto.Requests
 {
     /// <summary>
-    ///     Query to list cocktails
+    ///     Cocktail list request
     /// </summary>
-    public record GetCocktailListQuery : PagedListQuery<CocktailListItemDto>
+    public record GetCocktailListRequestDto : PagedListRequestDto
     {
         /// <summary>
         ///     Search by name

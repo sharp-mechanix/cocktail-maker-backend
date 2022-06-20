@@ -4,6 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using CocktailMaker.Common.Settings;
 using CocktailMaker.Data;
+using CocktailMaker.Data.Entities;
+using CocktailMaker.Data.Interfaces;
+using CocktailMaker.Data.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +47,10 @@ namespace CocktailMaker.Api
                     opts.MigrationsHistoryTable("__schema_migrations");
                 });
             });
+
+            services.AddScoped<IReadRepository<Cocktail, int>, CocktailRepository>();
+
+            services.AddMediatR(typeof(Startup));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
