@@ -3,55 +3,54 @@ using CocktailMaker.Data.Interfaces;
 
 namespace CocktailMaker.Data.Entities
 {
-	/// <summary>
+    /// <summary>
     ///		Cocktail entity
     /// </summary>
-	public class Cocktail : IEntity<int>
-	{
-		/// <summary>
+    public class Cocktail : IEntity<int>
+    {
+        /// <summary>
         ///		Cocktail ID
         /// </summary>
-		public int Id { get; set; }
+        public int Id { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		ID in CocktailDb
         /// </summary>
-		public int CocktailDbId { get; set; }
+        public int CocktailDbId { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Cocktail name
         /// </summary>
-		public string Name { get; set; }
+        public string Name { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Cocktail category
         /// </summary>
-		public string Category { get; set; }
+        public string Category { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Is cocktail alcoholic
         /// </summary>
-		public bool IsAlcoholic { get; set; }
+        public bool IsAlcoholic { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		IBA category
         /// </summary>
-		public string IbaCategory { get; set; }
+        public string IbaCategory { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Cocktail glass
         /// </summary>
-		public string Glass { get; set; }
+        public string Glass { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Instructions to make cocktail
         /// </summary>
-		public string Instructions { get; set; }
+        public string Instructions { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Cocktail ingredients with measures
         /// </summary>
-		public List<Measure> Measures { get; set; }
-	}
+        public List<Measure> Measures { get; set; }
+    }
 }
-
