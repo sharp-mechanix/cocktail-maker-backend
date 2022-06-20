@@ -1,10 +1,9 @@
 ﻿namespace CocktailMaker.Data.Interfaces
 {
-	/// <summary>
+    /// <summary>
     ///		Base filter interface
     /// </summary>
-	public interface IFilter
-	{
-	}
+    public interface IFilter
+    {
+    }
 }
-

@@ -14,30 +14,30 @@ using App = CocktailMaker.Data.Entities;
 
 namespace CocktailMaker.Grabber.Modules
 {
-	/// <summary>
+    /// <summary>
     ///		Cocktail grabber root service
     /// </summary>
-	public class GrabberService : IGrabberService
-	{
+    public class GrabberService : IGrabberService
+    {
         private readonly IServiceScopeFactory _scopeFactory;
-		private readonly ILogger<GrabberService> _logger;
+        private readonly ILogger<GrabberService> _logger;
         private readonly CocktailAPI _apiClient;
 
         public GrabberService(IServiceScopeFactory scopeFactory, ILogger<GrabberService> logger)
-		{
-			_logger = logger;
+        {
+            _logger = logger;
             _scopeFactory = scopeFactory;
 
             _apiClient = new CocktailAPI();
-		}
+        }
 
-		/// <inheritdoc />
+        /// <inheritdoc />
         public async Task GetCocktailDataAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting cocktail grabbing");
 
-			await GetIngredientsAsync(cancellationToken);
-			await GetCocktailsAsync(cancellationToken);
+            await GetIngredientsAsync(cancellationToken);
+            await GetCocktailsAsync(cancellationToken);
 
             _logger.LogInformation("Grabbing completed successfully");
         }
@@ -270,4 +270,3 @@ namespace CocktailMaker.Grabber.Modules
         }
     }
 }
-

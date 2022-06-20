@@ -2,42 +2,41 @@
 
 namespace CocktailMaker.Data.Entities
 {
-	public class Ingredient : IEntity<int>
-	{
-		/// <summary>
+    public class Ingredient : IEntity<int>
+    {
+        /// <summary>
         ///		ID
         /// </summary>
-		public int Id { get; set; }
+        public int Id { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		CocktailDB ID
         /// </summary>
-		public int? CocktailDbId { get; set; }
+        public int? CocktailDbId { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Ingredient name
         /// </summary>
-		public string Name { get; set; }
+        public string Name { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Ingredient description
         /// </summary>
-		public string Description { get; set; }
+        public string Description { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Ingredient type
         /// </summary>
-		public string Type { get; set; }
+        public string Type { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Whether ingredient has alcohol or not
         /// </summary>
-		public bool IsAlcohol { get; set; }
+        public bool IsAlcohol { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Volume percentage of alcohol
         /// </summary>
-		public int? ABV { get; set; }
-	}
+        public int? ABV { get; set; }
+    }
 }
-

@@ -19,4 +19,3 @@ namespace CocktailMaker.Data.Configuration
         }
     }
 }
-

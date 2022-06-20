@@ -5,30 +5,30 @@ using Npgsql.NameTranslation;
 
 namespace CocktailMaker.Data
 {
-	/// <summary>
-	///		Application database context
-	/// </summary>
+    /// <summary>
+    ///		Application database context
+    /// </summary>
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-	public class AppDbContext : DbContext
-	{
+    public class AppDbContext : DbContext
+    {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-		}
+        }
 
-		/// <summary>
+        /// <summary>
         ///		Cocktails
         /// </summary>
-		public DbSet<Cocktail> Cocktails { get; set; }
+        public DbSet<Cocktail> Cocktails { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Ingredients
         /// </summary>
-		public DbSet<Ingredient> Ingredients { get; set; }
+        public DbSet<Ingredient> Ingredients { get; set; }
 
-		/// <summary>
+        /// <summary>
         ///		Measures
         /// </summary>
-		public DbSet<Measure> Measures { get; set; }
+        public DbSet<Measure> Measures { get; set; }
 
         /// <inheritdoc />
         protected override void OnModelCreating(ModelBuilder modelBuilder)

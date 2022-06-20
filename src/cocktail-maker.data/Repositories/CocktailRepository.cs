@@ -14,14 +14,14 @@ namespace CocktailMaker.Data.Repositories
     ///     Repository for cocktails
     /// </summary>
 	public class CocktailRepository : IReadRepository<Cocktail, int>
-	{
+    {
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         /// <see cref="CocktailRepository" />
 		public CocktailRepository(IServiceScopeFactory serviceScopeFactory)
-		{
+        {
             _serviceScopeFactory = serviceScopeFactory;
-		}
+        }
 
         /// <inheritdoc />
         public async Task<Cocktail> GetByIdAsync(int id, CancellationToken cancellationToken)
@@ -72,4 +72,3 @@ namespace CocktailMaker.Data.Repositories
             => scope.ServiceProvider.GetRequiredService<AppDbContext>();
     }
 }
-

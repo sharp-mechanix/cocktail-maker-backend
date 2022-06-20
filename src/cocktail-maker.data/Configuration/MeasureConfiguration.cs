@@ -8,7 +8,7 @@ namespace CocktailMaker.Data.Configuration
     ///     Configuration of measures table
     /// </summary>
 	public class MeasureConfiguration : IEntityTypeConfiguration<Measure>
-	{
+    {
         public void Configure(EntityTypeBuilder<Measure> builder)
         {
             builder.HasKey(_ => _.Id);
@@ -25,4 +25,3 @@ namespace CocktailMaker.Data.Configuration
         }
     }
 }
-

@@ -8,11 +8,10 @@ namespace CocktailMaker.Data.Configuration
     ///     Configuration for ingredients table
     /// </summary>
 	public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
-	{
+    {
         public void Configure(EntityTypeBuilder<Ingredient> builder)
         {
             builder.HasKey(_ => _.Id);
         }
     }
 }
-
