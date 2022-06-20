@@ -10,11 +10,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CocktailMaker.Api.Controllers
 {
+    /// <summary>
+    ///     Cocktails controller
+    /// </summary>
     [Route("api/cocktails")]
     public class CocktailsController : ControllerBase
     {
         private readonly IMediator _mediator;
 
+        /// <see cref="CocktailsController" />
         public CocktailsController(IMediator mediator)
         {
             _mediator = mediator;
