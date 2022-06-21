@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CocktailMaker.Api.Dto.Responses;
+using CocktailMaker.Api.Interfaces;
 using MediatR;
 
 namespace CocktailMaker.Api.Handlers.Queries
@@ -10,10 +13,32 @@ namespace CocktailMaker.Api.Handlers.Queries
     /// </summary>
     public class GetCocktailOfTheDayQueryHandler : IRequestHandler<GetCocktailOfTheDayQuery, CocktailDto>
     {
-        /// <inheritdoc />
-        public Task<CocktailDto> Handle(GetCocktailOfTheDayQuery request, CancellationToken cancellationToken)
+        private readonly ICocktailOfTheDayService _cotdService;
+
+        public GetCocktailOfTheDayQueryHandler(ICocktailOfTheDayService cotdService)
         {
-            throw new System.NotImplementedException();
+            _cotdService = cotdService;
+        }
+
+        /// <inheritdoc />
+        public async Task<CocktailDto> Handle(GetCocktailOfTheDayQuery request, CancellationToken cancellationToken)
+        {
+            var cotd = await _cotdService.GetCocktailOfTheDayAsync(cancellationToken);
+
+            return new CocktailDto
+            {
+                Id = cotd.Id,
+                Category = cotd.Category,
+                Glass = cotd.Glass,
+                IbaCategory = cotd.IbaCategory,
+                Name = cotd.Name,
+                Instructions = cotd.Instructions,
+                Measures = cotd.Measures.Select(m => new MeasureDto
+                {
+                    IngredientName = m.Ingredient.Name,
+                    Measure = m.Value
+                }).ToImmutableArray()
+            };
         }
     }
 }

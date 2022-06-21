@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CocktailMaker.Api.Interfaces;
+using CocktailMaker.Api.Services;
 using CocktailMaker.Common.Settings;
 using CocktailMaker.Data;
 using CocktailMaker.Data.Entities;
@@ -10,7 +8,6 @@ using CocktailMaker.Data.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +46,7 @@ namespace CocktailMaker.Api
             });
 
             services.AddScoped<IReadRepository<Cocktail, int>, CocktailRepository>();
+            services.AddSingleton<ICocktailOfTheDayService, CocktailOfTheDayService>();
 
             services.AddMediatR(typeof(Startup));
         }
