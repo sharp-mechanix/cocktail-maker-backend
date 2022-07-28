@@ -18,12 +18,10 @@
     <ProjectReference Include="..\cocktail-maker.common\cocktail-maker.common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Modules\" />
     <None Remove="Interfaces\" />
     <None Remove="CocktailDbAPI" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Modules\" />
     <Folder Include="Interfaces\" />
   </ItemGroup>
 </Project>

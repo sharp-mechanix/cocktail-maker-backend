@@ -13,14 +13,12 @@ namespace CocktailMaker.Data.Repositories
     /// <summary>
     ///     Repository for cocktails
     /// </summary>
-    public class CocktailRepository : IReadRepository<Cocktail, int>
+    public class CocktailRepository : RepositoryBase, IReadRepository<Cocktail, int>
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-
         /// <see cref="CocktailRepository" />
         public CocktailRepository(IServiceScopeFactory serviceScopeFactory)
+            : base(serviceScopeFactory)
         {
-            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <inheritdoc />
@@ -33,6 +31,7 @@ namespace CocktailMaker.Data.Repositories
                 .Include(c => c.Measures)
                 .ThenInclude(m => m.Ingredient)
                 .FirstAsync(c => c.Id == id, cancellationToken);
+
             return result;
         }
 
@@ -46,6 +45,7 @@ namespace CocktailMaker.Data.Repositories
                 .Include(c => c.Measures)
                 .ThenInclude(m => m.Ingredient)
                 .AsQueryable();
+
             if (filter is null)
             {
                 return query.ToListAsync(cancellationToken);
@@ -62,13 +62,7 @@ namespace CocktailMaker.Data.Repositories
                     .Any(m => m.Ingredient.Name.Contains(cocktailFilter.Ingredient, StringComparison.InvariantCultureIgnoreCase)));
             }
 
-            throw new NotImplementedException();
+            return query.ToListAsync(cancellationToken);
         }
-
-        /// <summary>
-        ///     Returns database context
-        /// </summary>
-        private AppDbContext GetDbContext(IServiceScope scope)
-            => scope.ServiceProvider.GetRequiredService<AppDbContext>();
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using App = CocktailMaker.Data.Entities;
 
-namespace CocktailMaker.Grabber.Modules
+namespace CocktailMaker.Grabber.Services
 {
     /// <summary>
     ///     Cocktail grabber root service
