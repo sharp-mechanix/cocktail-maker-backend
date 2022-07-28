@@ -2,30 +2,29 @@
 using System.Threading.Tasks;
 using CocktailMaker.Data.Entities;
 using CocktailMaker.Data.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CocktailMaker.Data.Repositories
 {
     /// <summary>
     ///     Implementatioin for <see cref="IWriteRepository{TEntity, TId}" />
     /// </summary>
-    public class MeasureRepository : RepositoryBase, IWriteRepository<Measure, int>
+    public class MeasureRepository : IWriteRepository<Measure, int>
     {
-        public MeasureRepository(IServiceScopeFactory serviceScopeFactory)
-            : base(serviceScopeFactory)
+        private readonly AppDbContext _dbContext;
+
+        /// <see cref="MeasureRepository"/>
+        public MeasureRepository(AppDbContext dbContext)
         {
+            _dbContext = dbContext;
         }
 
         /// <inheritdoc />
         public async Task<Measure> CreateAsync(Measure newEntity, CancellationToken cancellationToken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
+            using var t = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            var result = await dbContext.Measures.AddAsync(newEntity, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var result = await _dbContext.Measures.AddAsync(newEntity, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             await t.CommitAsync(cancellationToken);
 
@@ -35,13 +34,10 @@ namespace CocktailMaker.Data.Repositories
         /// <inheritdoc />
         public async Task DeleteAsync(Measure entityToDelete, CancellationToken cancellationToken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
+            using var t = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            var result = dbContext.Measures.Remove(entityToDelete);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var result = _dbContext.Measures.Remove(entityToDelete);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             await t.CommitAsync(cancellationToken);
         }
@@ -49,13 +45,10 @@ namespace CocktailMaker.Data.Repositories
         /// <inheritdoc />
         public async Task<Measure> UpdateAsync(Measure updatedEntity, CancellationToken cancellationToken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
+            using var t = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            var result = dbContext.Measures.Update(updatedEntity);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var result = _dbContext.Measures.Update(updatedEntity);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             await t.CommitAsync(cancellationToken);
 

@@ -6,31 +6,29 @@ using System.Threading.Tasks;
 using CocktailMaker.Data.Entities;
 using CocktailMaker.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CocktailMaker.Data.Repositories
 {
     /// <summary>
     ///     Implementation for <see cref="IReadWriteRepository{TEntity, TId}" />
     /// </summary>
-    public class IngredientRepository : RepositoryBase, IReadWriteRepository<Ingredient, int>
+    public class IngredientRepository : IReadWriteRepository<Ingredient, int>
     {
+        private readonly AppDbContext _dbContext;
+
         /// <see cref="IngredientRepository" />
-        public IngredientRepository(IServiceScopeFactory serviceScopeFactory)
-            : base(serviceScopeFactory)
+        public IngredientRepository(AppDbContext dbContext)
         {
+            _dbContext = dbContext;
         }
 
         /// <inheritdoc />
         public async Task<Ingredient> CreateAsync(Ingredient newEntity, CancellationToken cancellationToken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
+            using var t = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            var result = await dbContext.Ingredients.AddAsync(newEntity, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var result = await _dbContext.Ingredients.AddAsync(newEntity, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             await t.CommitAsync(cancellationToken);
 
@@ -40,36 +38,22 @@ namespace CocktailMaker.Data.Repositories
         /// <inheritdoc />
         public async Task DeleteAsync(Ingredient entityToDelete, CancellationToken cancellationToken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
+            using var t = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            var result = dbContext.Ingredients.Remove(entityToDelete);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var result = _dbContext.Ingredients.Remove(entityToDelete);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             await t.CommitAsync(cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<Ingredient> GetByIdAsync(int id, CancellationToken cancellationToken)
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
-
-            var result = await dbContext.Ingredients
-                .FirstAsync(c => c.Id == id, cancellationToken);
-
-            return result;
-        }
+        public Task<Ingredient> GetByIdAsync(int id, CancellationToken cancellationToken)
+            => _dbContext.Ingredients.FirstAsync(c => c.Id == id, cancellationToken);
 
         /// <inheritdoc />
         public Task<List<Ingredient>> ListAsync(IFilter? filter, CancellationToken cancellationToken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
-
-            var query = dbContext.Ingredients
+            var query = _dbContext.Ingredients
                 .AsQueryable();
 
             if (filter is null)
@@ -89,13 +73,10 @@ namespace CocktailMaker.Data.Repositories
         /// <inheritdoc />
         public async Task<Ingredient> UpdateAsync(Ingredient updatedEntity, CancellationToken cancellationToken)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var dbContext = GetDbContext(scope);
+            using var t = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            var result = dbContext.Ingredients.Update(updatedEntity);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var result = _dbContext.Ingredients.Update(updatedEntity);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             await t.CommitAsync(cancellationToken);
 
