@@ -13,12 +13,42 @@ namespace CocktailMaker.Data.Repositories
     /// <summary>
     ///     Repository for cocktails
     /// </summary>
-    public class CocktailRepository : RepositoryBase, IReadRepository<Cocktail, int>
+    public class CocktailRepository : RepositoryBase, IReadWriteRepository<Cocktail, int>
     {
         /// <see cref="CocktailRepository" />
         public CocktailRepository(IServiceScopeFactory serviceScopeFactory)
             : base(serviceScopeFactory)
         {
+        }
+
+        /// <inheritdoc />
+        public async Task<Cocktail> CreateAsync(Cocktail newEntity, CancellationToken cancellationToken)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var dbContext = GetDbContext(scope);
+
+            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            var result = await dbContext.Cocktails.AddAsync(newEntity, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            await t.CommitAsync(cancellationToken);
+
+            return result.Entity;
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteAsync(Cocktail entityToDelete, CancellationToken cancellationToken)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var dbContext = GetDbContext(scope);
+
+            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            var result = dbContext.Cocktails.Remove(entityToDelete);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            await t.CommitAsync(cancellationToken);
         }
 
         /// <inheritdoc />
@@ -63,6 +93,22 @@ namespace CocktailMaker.Data.Repositories
             }
 
             return query.ToListAsync(cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public async Task<Cocktail> UpdateAsync(Cocktail updatedEntity, CancellationToken cancellationToken)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var dbContext = GetDbContext(scope);
+
+            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            var result = dbContext.Cocktails.Update(updatedEntity);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            await t.CommitAsync(cancellationToken);
+
+            return result.Entity;
         }
     }
 }

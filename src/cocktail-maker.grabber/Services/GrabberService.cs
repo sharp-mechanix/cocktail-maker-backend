@@ -161,7 +161,7 @@ namespace CocktailMaker.Grabber.Services
             }
 
             var dbMeasures = new List<App.Measure>();
-            for (var i = 0; i < ingredients.Length; i++)
+            for (int i = 0; i < ingredients.Length; i++)
             {
                 var measure = new App.Measure
                 {
@@ -211,6 +211,9 @@ namespace CocktailMaker.Grabber.Services
             return result.Where(i => i is not null).ToArray();
         }
 
+        /// <summary>
+        ///     Gets ingredient from database or creates one
+        /// </summary>
         private static async Task<App.Ingredient> GetOrCreateIngredientAsync(AppDbContext dbContext, string ingredientName, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(ingredientName))
@@ -233,7 +236,7 @@ namespace CocktailMaker.Grabber.Services
 
                 using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-                var result = await dbContext.Ingredients.AddAsync(newIngredient);
+                var result = await dbContext.Ingredients.AddAsync(newIngredient, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
 
                 await t.CommitAsync(cancellationToken);

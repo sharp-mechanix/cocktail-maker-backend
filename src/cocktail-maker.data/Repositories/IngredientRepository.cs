@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace CocktailMaker.Data.Repositories
 {
     /// <summary>
-    ///     Implementation for <see cref="IReadWriteRepository{TEntity, TId}"/>
+    ///     Implementation for <see cref="IReadWriteRepository{TEntity, TId}" />
     /// </summary>
     public class IngredientRepository : RepositoryBase, IReadWriteRepository<Ingredient, int>
     {
