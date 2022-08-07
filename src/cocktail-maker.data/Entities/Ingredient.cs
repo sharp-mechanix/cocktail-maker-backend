@@ -37,6 +37,6 @@ namespace CocktailMaker.Data.Entities
         /// <summary>
         ///     Volume percentage of alcohol
         /// </summary>
-        public int? ABV { get; set; }
+        public double ABV { get; set; }
     }
 }

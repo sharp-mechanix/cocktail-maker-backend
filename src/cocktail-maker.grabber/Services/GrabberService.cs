@@ -5,9 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using CocktailDbAPI;
 using CocktailDbAPI.Models.Drink;
-using CocktailMaker.Data;
+using CocktailMaker.Common.Enums;
+using CocktailMaker.Data.Interfaces;
+using CocktailMaker.Data.Repositories;
 using CocktailMaker.Grabber.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using App = CocktailMaker.Data.Entities;
@@ -51,15 +52,16 @@ namespace CocktailMaker.Grabber.Services
 
             _logger.LogTrace("Getting ingredient names");
             var ingredientNames = await _apiClient.GetIngredientsFiltersAsync();
+
             using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var repository = scope.ServiceProvider.GetRequiredService<IReadWriteRepository<App.Ingredient, int>>();
 
             foreach (var name in ingredientNames)
             {
                 _logger.LogTrace("Getting detailed information on ingredient '{name.Ingredient}'", name.Ingredient);
 
                 var ingredient = (await _apiClient.GetIngredientsByNameAsync(name.Ingredient)).FirstOrDefault();
-                if (ingredient is not null && !await IsIngredientExistsInDb(ingredient.IngredientId, dbContext))
+                if (ingredient is not null && !await IsIngredientExistsInDb(ingredient.IngredientId, repository, cancellationToken))
                 {
                     _logger.LogTrace("Ingredient '{name.Ingredient}' does not exist in database. Adding it", name.Ingredient);
                     var newIngredient = new App.Ingredient
@@ -69,15 +71,10 @@ namespace CocktailMaker.Grabber.Services
                         Type = ingredient.Type,
                         CocktailDbId = Convert.ToInt32(ingredient.IngredientId),
                         IsAlcohol = ingredient.Alcohol.Contains("yes", StringComparison.InvariantCultureIgnoreCase),
-                        ABV = ingredient.ABV is not null ? Convert.ToInt32(ingredient.ABV) : null,
+                        ABV = ingredient.ABV is not null ? Convert.ToDouble(ingredient.ABV) : 0.0,
                     };
 
-                    using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-                    await dbContext.Ingredients.AddAsync(newIngredient, cancellationToken);
-
-                    await dbContext.SaveChangesAsync(cancellationToken);
-                    await t.CommitAsync(cancellationToken);
+                    await repository.CreateAsync(newIngredient, cancellationToken);
                 }
             }
 
@@ -87,8 +84,8 @@ namespace CocktailMaker.Grabber.Services
         /// <summary>
         ///     If the ingredient is already imported
         /// </summary>
-        private static Task<bool> IsIngredientExistsInDb(string cocktailDbId, AppDbContext dbContext)
-            => dbContext.Ingredients.AnyAsync(i => i.CocktailDbId == Convert.ToInt32(cocktailDbId));
+        private static async Task<bool> IsIngredientExistsInDb(string cocktailDbId, IReadWriteRepository<App.Ingredient, int> repo, CancellationToken cancellationToken)
+            => (await repo.ListAsync(new IngredientFilter(), cancellationToken)).Any(i => i.CocktailDbId == Convert.ToInt32(cocktailDbId));
 
         /// <summary>
         ///     Gets data about cocktails
@@ -99,8 +96,9 @@ namespace CocktailMaker.Grabber.Services
 
             _logger.LogTrace("Getting cocktail categories");
             var categories = await _apiClient.GetCategoryFiltersAsync();
+
             using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var repository = scope.ServiceProvider.GetRequiredService<IReadWriteRepository<App.Cocktail, int>>();
 
             foreach (var category in categories)
             {
@@ -109,7 +107,7 @@ namespace CocktailMaker.Grabber.Services
                 var drinks = await _apiClient.GetDrinkSummariesByCategoryAsync(category.Category);
                 foreach (var drink in drinks)
                 {
-                    if (await dbContext.Cocktails.AnyAsync(c => c.CocktailDbId == Convert.ToInt32(drink.DrinkId), cancellationToken))
+                    if ((await repository.ListAsync(new CocktailFilter(), cancellationToken)).Any(c => c.CocktailDbId == Convert.ToInt32(drink.DrinkId)))
                     {
                         continue;
                     }
@@ -121,21 +119,16 @@ namespace CocktailMaker.Grabber.Services
                     {
                         CocktailDbId = Convert.ToInt32(drinkDetails.DrinkId),
                         Name = drinkDetails.DrinkName,
-                        Category = drinkDetails.Category,
+                        Category = drinkDetails.Category.ToCategoryEnum(),
                         IbaCategory = drinkDetails.IBA,
-                        Glass = drinkDetails.Glass,
-                        IsAlcoholic = drinkDetails.Alcoholic.Contains("yes", StringComparison.InvariantCultureIgnoreCase),
+                        Glass = drinkDetails.Glass.ToGlassEnum(),
+                        IsAlcoholic = drinkDetails.Alcoholic.ToAlcoholicEnum(),
                         Instructions = drinkDetails.Instructions
                     };
 
-                    using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+                    cocktail = await repository.CreateAsync(cocktail, cancellationToken);
 
-                    cocktail = (await dbContext.Cocktails.AddAsync(cocktail, cancellationToken)).Entity;
-                    await dbContext.SaveChangesAsync(cancellationToken);
-
-                    await t.CommitAsync(cancellationToken);
-
-                    await GetMeasures(dbContext, cocktail, drinkDetails, cancellationToken);
+                    await GetMeasures(cocktail, drinkDetails, cancellationToken);
 
                 }
             }
@@ -146,11 +139,11 @@ namespace CocktailMaker.Grabber.Services
         /// <summary>
         ///     Parses measure from cocktail
         /// </summary>
-        private async Task GetMeasures(AppDbContext dbContext, App.Cocktail cocktail, Drink drink, CancellationToken cancellationToken)
+        private async Task GetMeasures(App.Cocktail cocktail, Drink drink, CancellationToken cancellationToken)
         {
             _logger.LogDebug("Getting measures info for cocktail '{drink.DrinkName}'", drink.DrinkName);
 
-            var ingredients = await ConvertIngredientsToArrayAsync(dbContext, drink, cancellationToken);
+            var ingredients = await ConvertIngredientsToArrayAsync(drink, cancellationToken);
             var measures = ConvertMeasuresToArray(drink);
 
             if (ingredients.Length < measures.Length)
@@ -174,12 +167,13 @@ namespace CocktailMaker.Grabber.Services
                 dbMeasures.Add(measure);
             }
 
-            using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            using var scope = _scopeFactory.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IReadWriteRepository<App.Measure, int>>();
 
-            await dbContext.Measures.AddRangeAsync(dbMeasures, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            await t.CommitAsync(cancellationToken);
+            foreach (var measure in dbMeasures)
+            {
+                await repository.CreateAsync(measure, cancellationToken);
+            }
 
             _logger.LogDebug("Finished getting measures for '{drink.DrinkName}'", drink.DrinkName);
         }
@@ -187,25 +181,25 @@ namespace CocktailMaker.Grabber.Services
         /// <summary>
         ///     Converts ingredient fields to list
         /// </summary>
-        private static async Task<App.Ingredient[]> ConvertIngredientsToArrayAsync(AppDbContext dbContext, Drink drink, CancellationToken cancellationToken)
+        private async Task<App.Ingredient[]> ConvertIngredientsToArrayAsync(Drink drink, CancellationToken cancellationToken)
         {
             var result = new App.Ingredient[]
             {
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient1, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient2, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient3, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient4, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient5, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient6, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient7, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient8, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient9, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient10, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient11, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient12, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient13, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient14, cancellationToken),
-                await GetOrCreateIngredientAsync(dbContext, drink.Ingredient15, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient1, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient2, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient3, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient4, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient5, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient6, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient7, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient8, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient9, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient10, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient11, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient12, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient13, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient14, cancellationToken),
+                await GetOrCreateIngredientAsync(drink.Ingredient15, cancellationToken),
             };
 
             return result.Where(i => i is not null).ToArray();
@@ -214,14 +208,18 @@ namespace CocktailMaker.Grabber.Services
         /// <summary>
         ///     Gets ingredient from database or creates one
         /// </summary>
-        private static async Task<App.Ingredient> GetOrCreateIngredientAsync(AppDbContext dbContext, string ingredientName, CancellationToken cancellationToken)
+        private async Task<App.Ingredient> GetOrCreateIngredientAsync(string ingredientName, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(ingredientName))
             {
                 return null;
             }
 
-            var ingredient = await dbContext.Ingredients.FirstOrDefaultAsync(i => i.Name == ingredientName, cancellationToken);
+            using var scope = _scopeFactory.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IReadWriteRepository<App.Ingredient, int>>();
+
+            var ingredient = (await repository.ListAsync(new IngredientFilter(), cancellationToken))
+                .FirstOrDefault(i => i.Name == ingredientName);
 
             if (ingredient is not null)
             {
@@ -234,14 +232,9 @@ namespace CocktailMaker.Grabber.Services
                     Name = ingredientName
                 };
 
-                using var t = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+                var result = await repository.CreateAsync(newIngredient, cancellationToken);
 
-                var result = await dbContext.Ingredients.AddAsync(newIngredient, cancellationToken);
-                await dbContext.SaveChangesAsync(cancellationToken);
-
-                await t.CommitAsync(cancellationToken);
-
-                return result.Entity;
+                return result;
             }
         }
 

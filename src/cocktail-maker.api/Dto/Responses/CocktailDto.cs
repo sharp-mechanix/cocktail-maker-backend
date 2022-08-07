@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using CocktailMaker.Common.Enums;
 
 namespace CocktailMaker.Api.Dto.Responses
 {
@@ -20,7 +21,7 @@ namespace CocktailMaker.Api.Dto.Responses
         /// <summary>
         ///     Cocktail category
         /// </summary>
-        public string Category { get; set; } = "";
+        public Category Category { get; set; }
 
         /// <summary>
         ///     IBA category
@@ -30,7 +31,7 @@ namespace CocktailMaker.Api.Dto.Responses
         /// <summary>
         ///     Cocktail glass
         /// </summary>
-        public string Glass { get; set; } = "";
+        public Glass Glass { get; set; }
 
         /// <summary>
         ///     Instructions to make cocktail

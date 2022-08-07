@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CocktailMaker.Common.Enums;
 using CocktailMaker.Data.Interfaces;
 
 namespace CocktailMaker.Data.Entities
@@ -26,12 +27,12 @@ namespace CocktailMaker.Data.Entities
         /// <summary>
         ///     Cocktail category
         /// </summary>
-        public string Category { get; set; }
+        public Category Category { get; set; }
 
         /// <summary>
         ///     Is cocktail alcoholic
         /// </summary>
-        public bool IsAlcoholic { get; set; }
+        public Alcoholic IsAlcoholic { get; set; }
 
         /// <summary>
         ///     IBA category
@@ -41,7 +42,7 @@ namespace CocktailMaker.Data.Entities
         /// <summary>
         ///     Cocktail glass
         /// </summary>
-        public string Glass { get; set; }
+        public Glass Glass { get; set; }
 
         /// <summary>
         ///     Instructions to make cocktail
